@@ -3,6 +3,8 @@ import os
 import random
 from logging.handlers import TimedRotatingFileHandler
 
+import redis
+
 from environs import Env
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import Filters
@@ -13,33 +15,38 @@ from create_intent import load_questions_answers
 bot_logger = logging.getLogger(__file__)
 
 
-def handle_message(update, context, questions_answers):
+def handle_message(update, context, questions_answers, redis_client):
     message = update.message
     chat_id = message.chat_id
     text = message.text
 
     if text == 'Новый вопрос':
-        # Получение случайного вопроса из словаря questions_answers
         question = random.choice(list(questions_answers.keys()))
-        answer = questions_answers[question]
 
-        # Отправка нового вопроса и ответа
+        redis_client.set(chat_id, question)
+
         context.bot.send_message(
             chat_id=chat_id,
-            text=f"Вопрос: {question}\nОтвет: {answer}"
+            text=f"Вопрос: {question}"
         )
+
     else:
-        # Создание пользовательской клавиатуры
         custom_keyboard = [['Новый вопрос', 'Сдаться'],
                            ['Мой счёт']]
         reply_markup = ReplyKeyboardMarkup(custom_keyboard)
 
-        # Отправка сообщения с клавиатурой
         context.bot.send_message(
             chat_id=chat_id,
             text="Custom Keyboard Test",
             reply_markup=reply_markup
         )
+
+    question_bytes = redis_client.get(chat_id)
+    if question_bytes is not None:
+        question = question_bytes.decode()
+        print(question)
+    else:
+        print("No question")
 
 
 def main():
@@ -61,11 +68,14 @@ def main():
     quiz_files_folder = env.str('QUIZ_FILES_FOLDER')
     questions_answers = load_questions_answers(quiz_files_folder)
 
+    redis_client = redis.Redis.from_url(env.str('REDIS_URL'))
+
+
     updater = Updater(token=telegram_token, use_context=True)
     dispatcher = updater.dispatcher
     dispatcher.add_handler(MessageHandler(
         Filters.text & (~Filters.command),
-        lambda update, context: handle_message(update, context, questions_answers)
+        lambda update, context: handle_message(update, context, questions_answers, redis_client)
     ))
 
     updater.start_polling()

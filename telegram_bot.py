@@ -58,24 +58,28 @@ def handle_new_question(update, context):
 
 
 def handle_check_answer(update, context):
+    user_answer = update.message.text
     redis_client = context.dispatcher.user_data['redis_client']
 
     chat_id = update.message.chat_id
     current_question = redis_client.get(f"question:{chat_id}").decode('utf-8')
 
+    if user_answer == "Сдаться":
+        correct_answer = context.user_data['questions_answers'][current_question]
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Правильный ответ: {correct_answer}"
+        )
+        return handle_new_question(update, context)
+
     correct_answer = context.user_data['questions_answers'][current_question]
-    user_message = update.message.text
-    if "Ответ:" in user_message:
-        user_answer = user_message.split("Ответ:")[1].strip()
-    else:
-        user_answer = user_message
 
     if user_answer.lower() == correct_answer.lower():
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»."
         )
-        redis_client.incr(f"correct_answers:{chat_id}")
+        redis_client.incr(f"correct_answers:{chat_id}")  # Increment the correct answer count
         reply_markup = ReplyKeyboardMarkup([['Новый вопрос', 'Сдаться'], ['Мой счет']],
                                            one_time_keyboard=True)
         update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
@@ -86,7 +90,23 @@ def handle_check_answer(update, context):
             chat_id=update.effective_chat.id,
             text="Неправильно... Попробуешь ещё раз?"
         )
+        reply_markup = ReplyKeyboardMarkup([['Сдаться']],
+                                           one_time_keyboard=True)
+        update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
         return BotState.CHECK_ANSWER
+
+
+def handle_give_up(update, context):
+    redis_client = context.dispatcher.user_data['redis_client']
+    chat_id = update.message.chat_id
+    current_question = redis_client.get(f"question:{chat_id}").decode('utf-8')
+
+    correct_answer = context.user_data['questions_answers'][current_question]
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f"Правильный ответ: {correct_answer}"
+    )
+    return handle_new_question(update, context)
 
 
 def main():
@@ -122,7 +142,11 @@ def main():
         states={
             BotState.START:  [MessageHandler(Filters.text & ~Filters.command, handle_start)],
             BotState.NEW_QUESTION: [MessageHandler(Filters.text & ~Filters.command, handle_new_question)],
-            BotState.CHECK_ANSWER: [MessageHandler(Filters.text & ~Filters.command, handle_check_answer)],
+            BotState.CHECK_ANSWER: [
+                MessageHandler(Filters.text & ~Filters.command, handle_check_answer),
+                MessageHandler(Filters.regex('^(Сдаться)$'), handle_give_up)
+            ],
+
         },
         fallbacks=[start_handler]
     )

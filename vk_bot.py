@@ -26,19 +26,19 @@ def handle_message_vk(env, event, vk_api):
                 random_id=random.randint(1, 1000000)
             )
     except Exception as e:
-        bot_logger.exception("An error occurred while handling the message")
+        bot_logger.exception('An error occurred while handling the message')
         vk_api.messages.send(
             user_id=event.user_id,
-            message="Произошла ошибка при обработке сообщения.",
+            message='Произошла ошибка при обработке сообщения.',
             random_id=random.randint(1, 1000000)
         )
 
 
 def main():
-    if not os.path.exists("logs"):
-        os.makedirs("logs")
-    log_file = os.path.join("logs", "vk_bot.log")
-    file_handler = TimedRotatingFileHandler(log_file, when="midnight", interval=1, encoding="utf-8")
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+    log_file = os.path.join('logs', 'vk_bot.log')
+    file_handler = TimedRotatingFileHandler(log_file, when='midnight', interval=1, encoding='utf-8')
     file_handler.setFormatter(logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
@@ -49,7 +49,7 @@ def main():
     env = Env()
     env.read_env()
 
-    vk_token = env.str("VK_TOKEN")
+    vk_token = env.str('VK_TOKEN')
     vk_session = vk.VkApi(token=vk_token)
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
@@ -59,5 +59,5 @@ def main():
             handle_message_vk(env, event, vk_api)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

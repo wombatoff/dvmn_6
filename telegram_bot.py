@@ -27,8 +27,33 @@ def handle_message(update, context, questions_answers, redis_client):
 
         context.bot.send_message(
             chat_id=chat_id,
-            text=f"Вопрос: {question}"
+            text=f'Вопрос: {question}'
         )
+
+    elif text.startswith('Ответ:'):
+        user_answer = text.split(':')[1].strip()
+
+        previous_question_bytes = redis_client.get(chat_id)
+        if previous_question_bytes is not None:
+            previous_question = previous_question_bytes.decode()
+
+            correct_answer = questions_answers.get(previous_question)
+
+            if user_answer.lower() == correct_answer.lower():
+                context.bot.send_message(
+                    chat_id=chat_id,
+                    text='Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»'
+                )
+            else:
+                context.bot.send_message(
+                    chat_id=chat_id,
+                    text='Неправильно… Попробуешь ещё раз?'
+                )
+        else:
+            context.bot.send_message(
+                chat_id=chat_id,
+                text='Не найден предыдущий вопрос для проверки ответа.'
+            )
 
     else:
         custom_keyboard = [['Новый вопрос', 'Сдаться'],
@@ -37,23 +62,17 @@ def handle_message(update, context, questions_answers, redis_client):
 
         context.bot.send_message(
             chat_id=chat_id,
-            text="Custom Keyboard Test",
+            text='Custom Keyboard Test',
             reply_markup=reply_markup
         )
 
-    question_bytes = redis_client.get(chat_id)
-    if question_bytes is not None:
-        question = question_bytes.decode()
-        print(question)
-    else:
-        print("No question")
 
 
 def main():
-    if not os.path.exists("logs"):
-        os.makedirs("logs")
-    log_file = os.path.join("logs", "telegram_bot.log")
-    file_handler = TimedRotatingFileHandler(log_file, when="midnight", interval=1, encoding="utf-8")
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+    log_file = os.path.join('logs', 'telegram_bot.log')
+    file_handler = TimedRotatingFileHandler(log_file, when='midnight', interval=1, encoding='utf-8')
     file_handler.setFormatter(logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
@@ -64,7 +83,7 @@ def main():
     env = Env()
     env.read_env()
 
-    telegram_token = env.str("TELEGRAM_TOKEN")
+    telegram_token = env.str('TELEGRAM_TOKEN')
     quiz_files_folder = env.str('QUIZ_FILES_FOLDER')
     questions_answers = load_questions_answers(quiz_files_folder)
 
@@ -82,5 +101,5 @@ def main():
     updater.idle()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

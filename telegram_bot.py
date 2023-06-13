@@ -3,6 +3,7 @@ import os
 from logging.handlers import TimedRotatingFileHandler
 
 from environs import Env
+from telegram import ReplyKeyboardMarkup
 from telegram.ext import Filters
 from telegram.ext import Updater, MessageHandler
 
@@ -11,8 +12,19 @@ from create_intent import load_questions_answers
 bot_logger = logging.getLogger(__file__)
 
 
-def echo(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
+def handle_message(update, context):
+    message = update.message
+    chat_id = message.chat_id
+
+    custom_keyboard = [['Новый вопрос', 'Сдаться'],
+                       ['Мой счёт']]
+    reply_markup = ReplyKeyboardMarkup(custom_keyboard)
+
+    context.bot.send_message(
+        chat_id=chat_id,
+        text="Custom Keyboard Test",
+        reply_markup=reply_markup
+    )
 
 
 def main():
@@ -36,9 +48,10 @@ def main():
 
     updater = Updater(token=telegram_token, use_context=True)
     dispatcher = updater.dispatcher
-    echo_handler = MessageHandler(Filters.text & (~Filters.command), echo)
-    dispatcher.add_handler(echo_handler)
+    dispatcher.add_handler(MessageHandler(Filters.text & (~Filters.command), handle_message))
+
     updater.start_polling()
+    updater.idle()
 
 
 if __name__ == "__main__":

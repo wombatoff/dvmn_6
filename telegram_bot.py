@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 from logging.handlers import TimedRotatingFileHandler
 
 from environs import Env
@@ -12,19 +13,33 @@ from create_intent import load_questions_answers
 bot_logger = logging.getLogger(__file__)
 
 
-def handle_message(update, context):
+def handle_message(update, context, questions_answers):
     message = update.message
     chat_id = message.chat_id
+    text = message.text
 
-    custom_keyboard = [['Новый вопрос', 'Сдаться'],
-                       ['Мой счёт']]
-    reply_markup = ReplyKeyboardMarkup(custom_keyboard)
+    if text == 'Новый вопрос':
+        # Получение случайного вопроса из словаря questions_answers
+        question = random.choice(list(questions_answers.keys()))
+        answer = questions_answers[question]
 
-    context.bot.send_message(
-        chat_id=chat_id,
-        text="Custom Keyboard Test",
-        reply_markup=reply_markup
-    )
+        # Отправка нового вопроса и ответа
+        context.bot.send_message(
+            chat_id=chat_id,
+            text=f"Вопрос: {question}\nОтвет: {answer}"
+        )
+    else:
+        # Создание пользовательской клавиатуры
+        custom_keyboard = [['Новый вопрос', 'Сдаться'],
+                           ['Мой счёт']]
+        reply_markup = ReplyKeyboardMarkup(custom_keyboard)
+
+        # Отправка сообщения с клавиатурой
+        context.bot.send_message(
+            chat_id=chat_id,
+            text="Custom Keyboard Test",
+            reply_markup=reply_markup
+        )
 
 
 def main():
@@ -48,7 +63,10 @@ def main():
 
     updater = Updater(token=telegram_token, use_context=True)
     dispatcher = updater.dispatcher
-    dispatcher.add_handler(MessageHandler(Filters.text & (~Filters.command), handle_message))
+    dispatcher.add_handler(MessageHandler(
+        Filters.text & (~Filters.command),
+        lambda update, context: handle_message(update, context, questions_answers)
+    ))
 
     updater.start_polling()
     updater.idle()

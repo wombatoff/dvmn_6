@@ -81,7 +81,10 @@ sudo docker run -d \
   --restart unless-stopped \
   dvmn_6
 ```
+### Ссылки на рабочих ботов:
+- [VK bot](https://vk.com/club220316320)
+
+- [Telegram bot](https://t.me/wombtestbot)
 
 ### Автор:
-
 [Wombatoff](https://github.com/wombatoff/)

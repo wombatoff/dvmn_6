@@ -71,7 +71,7 @@ QUIZ_FILES_FOLDER=
 ```
 - Разверните Docker-контейнер:
 ```
-docker build -t dvmn_6 .
+sudo docker build -t dvmn_6 .
 ```
 ```
 sudo docker run -d \

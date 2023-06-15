@@ -69,9 +69,9 @@ VK_TOKEN=
 REDIS_URL=
 QUIZ_FILES_FOLDER=
 ```
-- Разверните Docker-контейнер:
+- Запустите docker-compose:
 ```
-sudo docker build -t dvmn_6 .
+sudo docker-compose up -d
 ```
 ```
 sudo docker run -d \

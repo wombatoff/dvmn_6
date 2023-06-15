@@ -73,14 +73,7 @@ QUIZ_FILES_FOLDER=
 ```
 sudo docker-compose up -d
 ```
-```
-sudo docker run -d \
-  --name dvmn_6 \
-  -v $(pwd)/logs:/app/logs \
-  -v $(pwd)/.env:/app/.env \
-  --restart unless-stopped \
-  dvmn_6
-```
+
 ### Ссылки на рабочих ботов:
 - [VK bot](https://vk.com/club220316320)
 

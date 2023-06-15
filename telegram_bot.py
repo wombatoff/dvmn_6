@@ -104,8 +104,6 @@ def handle_my_score(update, context):
     correct_answers_count = redis_client.get(f'correct_answers:{chat_id}')
     correct_answers_count = int(correct_answers_count) if correct_answers_count else 0
 
-    print(correct_answers_count)
-
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f'Ваш счёт: {correct_answers_count} правильных ответов',

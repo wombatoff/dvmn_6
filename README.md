@@ -75,9 +75,8 @@ sudo docker-compose up -d
 ```
 
 ### Ссылки на рабочих ботов:
-- [VK bot](https://vk.com/club220316320)
-
 - [Telegram bot](https://t.me/wombtestbot)
+- [VK bot](https://vk.com/club220316320)
 
 ### Автор:
 [Wombatoff](https://github.com/wombatoff/)

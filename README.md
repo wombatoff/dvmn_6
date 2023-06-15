@@ -78,11 +78,8 @@ sudo docker run -d \
   --name dvmn_6 \
   -v $(pwd)/logs:/app/logs \
   -v $(pwd)/.env:/app/.env \
-  --env-file .env \
   --restart unless-stopped \
-  dvmn_6 \
-  python telegram_bot.py \
-  python vk_bot.py
+  dvmn_6
 ```
 
 ### Автор:
